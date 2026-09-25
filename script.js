@@ -14,10 +14,12 @@ http://127.0.0.1:5000
 
 DEPLOYED:
 
-Replace with your deployed Flask backend URL.
+https://agent-shield-backend.onrender.com
 */
 
-const API_BASE = "https://agent-shield-backend.onrender.com/";
+const API_BASE =
+    "https://agent-shield-backend.onrender.com";
+
 
 let verifiedResource = null;
 
@@ -88,7 +90,9 @@ async function loadSession() {
             await response.json();
 
         if (!response.ok) {
+
             throw new Error(
+                data.error ||
                 "Session unavailable"
             );
         }
@@ -123,6 +127,7 @@ async function loadSession() {
                 "identityBadge"
             );
 
+
         if (badge) {
 
             badge.textContent =
@@ -147,7 +152,8 @@ async function loadSession() {
             );
         }
 
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(
             "Session error:",
@@ -172,7 +178,7 @@ function updateRisk(
 
     const score =
         Number(
-            risk.overall_risk || 0
+            risk.overall_risk ?? 0
         );
 
 
@@ -239,6 +245,7 @@ function updateRisk(
             "risk-level low";
 
     }
+
     else if (score < 60) {
 
         level.textContent =
@@ -248,6 +255,7 @@ function updateRisk(
             "risk-level medium";
 
     }
+
     else if (score < 80) {
 
         level.textContent =
@@ -257,6 +265,7 @@ function updateRisk(
             "risk-level high";
 
     }
+
     else {
 
         level.textContent =
@@ -324,22 +333,26 @@ function updateAuthorization(
     ) {
 
         authorization.permissions
-            .forEach(permission => {
+            .forEach(
+                permission => {
 
-                const item =
-                    document.createElement(
-                        "span"
+                    const item =
+                        document.createElement(
+                            "span"
+                        );
+
+                    item.textContent =
+                        permission;
+
+                    permissions.appendChild(
+                        item
                     );
+                }
+            );
 
-                item.textContent =
-                    permission;
+    }
 
-                permissions.appendChild(
-                    item
-                );
-            });
-
-    } else {
+    else {
 
         const item =
             document.createElement(
@@ -412,7 +425,32 @@ async function verifyResource() {
         true;
 
 
+    /*
+    -------------------------------------------------------
+    TIMEOUT CONTROLLER
+    -------------------------------------------------------
+    */
+
+    const controller =
+        new AbortController();
+
+
+    const timeout =
+        setTimeout(
+            () => {
+                controller.abort();
+            },
+            15000
+        );
+
+
     try {
+
+        /*
+        ---------------------------------------------------
+        SEND URL TO FLASK BACKEND
+        ---------------------------------------------------
+        */
 
         const response =
             await fetch(
@@ -427,20 +465,40 @@ async function verifyResource() {
 
                     body: JSON.stringify({
                         url: url
-                    })
+                    }),
+
+                    signal:
+                        controller.signal
                 }
             );
 
 
+        clearTimeout(
+            timeout
+        );
+
+
+        /*
+        ---------------------------------------------------
+        READ BACKEND RESPONSE
+        ---------------------------------------------------
+        */
+
         const data =
             await response.json();
+
+
+        console.log(
+            "AgentShield verification response:",
+            data
+        );
 
 
         if (!response.ok) {
 
             throw new Error(
                 data.error ||
-                "Verification failed."
+                `Backend returned HTTP ${response.status}`
             );
         }
 
@@ -448,6 +506,12 @@ async function verifyResource() {
         verifiedResource =
             data;
 
+
+        /*
+        ---------------------------------------------------
+        UPDATE DASHBOARD
+        ---------------------------------------------------
+        */
 
         updateRisk(
             data.risk
@@ -465,6 +529,12 @@ async function verifyResource() {
             "UNKNOWN";
 
 
+        /*
+        ===================================================
+        ALLOW
+        ===================================================
+        */
+
         if (
             decision === "ALLOW"
         ) {
@@ -479,6 +549,7 @@ async function verifyResource() {
 
                     <div class="resource-row">
                         <span>URL</span>
+
                         <strong>
                             ${escapeHtml(url)}
                         </strong>
@@ -486,6 +557,7 @@ async function verifyResource() {
 
                     <div class="resource-row">
                         <span>DECISION</span>
+
                         <strong>
                             ALLOW
                         </strong>
@@ -493,28 +565,36 @@ async function verifyResource() {
 
                     <div class="resource-row">
                         <span>RISK</span>
+
                         <strong>
-                            ${data.risk.overall_risk}/100
+                            ${data.risk?.overall_risk ?? "--"}/100
                         </strong>
                     </div>
 
                     <div class="resource-row">
                         <span>HTTP</span>
+
                         <strong>
-                            ${data.inspection?.status_code || "REACHABLE"}
+                            ${data.inspection?.status_code ?? "REACHABLE"}
                         </strong>
                     </div>
 
                 </div>
+
             `;
 
+
+            /*
+            Only ALLOW can enable
+            Open Verified Resource.
+            */
 
             openButton.disabled =
                 false;
 
 
             showBotMessage(
-                "Resource verified. The risk engine returned ALLOW. The resource can now be opened."
+                "Resource verified. The security engine returned ALLOW. The resource can now be opened."
             );
 
 
@@ -532,9 +612,16 @@ async function verifyResource() {
                 "toy-warning",
                 "toy-danger"
             );
+        }
 
 
-        } else {
+        /*
+        ===================================================
+        BLOCKED
+        ===================================================
+        */
+
+        else {
 
             result.innerHTML = `
 
@@ -546,6 +633,7 @@ async function verifyResource() {
 
                     <div class="resource-row">
                         <span>DECISION</span>
+
                         <strong>
                             ${escapeHtml(decision)}
                         </strong>
@@ -553,6 +641,7 @@ async function verifyResource() {
 
                     <div class="resource-row">
                         <span>RISK</span>
+
                         <strong>
                             ${data.risk?.overall_risk ?? "--"}/100
                         </strong>
@@ -595,17 +684,28 @@ async function verifyResource() {
                     </div>
 
                 </div>
+
             `;
 
+
+            /*
+            Never allow opening a blocked resource.
+            */
 
             openButton.disabled =
                 true;
 
 
             showBotMessage(
-                `Access blocked. Security decision: ${decision}.`
+                `Access blocked. Security decision: ${escapeHtml(decision)}.`
             );
 
+
+            /*
+            ------------------------------------------------
+            WARNING STATE
+            ------------------------------------------------
+            */
 
             if (
                 decision === "RESTRICT" ||
@@ -620,7 +720,15 @@ async function verifyResource() {
                     "toy-warning"
                 );
 
-            } else {
+            }
+
+            /*
+            ------------------------------------------------
+            DANGER STATE
+            ------------------------------------------------
+            */
+
+            else {
 
                 floatingAgent.classList.remove(
                     "toy-warning"
@@ -631,6 +739,12 @@ async function verifyResource() {
                 );
             }
 
+
+            /*
+            ------------------------------------------------
+            ISOLATION PREVIEW
+            ------------------------------------------------
+            */
 
             if (
                 decision === "REVOKE" &&
@@ -644,15 +758,50 @@ async function verifyResource() {
         }
 
 
+        /*
+        ---------------------------------------------------
+        REFRESH SECURITY INFORMATION
+        ---------------------------------------------------
+        */
+
         await loadBlastRadius();
 
         await loadAuditLogs();
 
-    } catch (error) {
+    }
+
+    catch (error) {
+
+        clearTimeout(
+            timeout
+        );
+
 
         console.error(
+            "AgentShield verification error:",
             error
         );
+
+
+        let message =
+            "Security engine request failed.";
+
+
+        if (
+            error.name === "AbortError"
+        ) {
+
+            message =
+                "The security engine took too long to respond.";
+
+        }
+
+        else {
+
+            message =
+                error.message ||
+                message;
+        }
 
 
         result.innerHTML = `
@@ -660,18 +809,20 @@ async function verifyResource() {
             <div class="resource-danger">
 
                 <div class="resource-title">
-                    ⚠ SECURITY ENGINE UNAVAILABLE
+                    ⚠ SECURITY ENGINE ERROR
                 </div>
 
                 <p>
-                    AgentShield could not reach the Flask backend.
+                    ${escapeHtml(message)}
                 </p>
 
                 <small>
-                    Check API_BASE and make sure app.py is running.
+                    Backend:
+                    ${escapeHtml(API_BASE)}
                 </small>
 
             </div>
+
         `;
 
 
@@ -680,7 +831,7 @@ async function verifyResource() {
 
 
         showBotMessage(
-            "I cannot reach the security engine. Start app.py and check API_BASE."
+            `Security engine error: ${escapeHtml(message)}`
         );
     }
 }
@@ -707,6 +858,12 @@ function openVerifiedResource() {
     const authorization =
         verifiedResource.authorization;
 
+
+    /*
+    SECURITY CHECK
+
+    Only ALLOW can open the resource.
+    */
 
     if (
         !authorization ||
@@ -749,22 +906,37 @@ function showCredential(
     if (!credential) return;
 
 
-    document.getElementById(
-        "credentialStatus"
-    ).textContent =
-        credential.status;
+    const status =
+        document.getElementById(
+            "credentialStatus"
+        );
 
 
-    document.getElementById(
-        "credentialStatus"
-    ).className =
-        `badge ${credential.status.toLowerCase()}`;
+    const id =
+        document.getElementById(
+            "credentialId"
+        );
 
 
-    document.getElementById(
-        "credentialId"
-    ).textContent =
-        credential.credential_id;
+    if (status) {
+
+        status.textContent =
+            credential.status;
+
+        status.className =
+            `badge ${
+                String(
+                    credential.status || ""
+                ).toLowerCase()
+            }`;
+    }
+
+
+    if (id) {
+
+        id.textContent =
+            credential.credential_id;
+    }
 
 
     startCredentialTimer(
@@ -820,10 +992,17 @@ function startCredentialTimer(
             seconds % 60;
 
 
-        document.getElementById(
-            "credentialTimer"
-        ).textContent =
-            `${minutes}:${String(secs).padStart(2, "0")}`;
+        const timer =
+            document.getElementById(
+                "credentialTimer"
+            );
+
+
+        if (timer) {
+
+            timer.textContent =
+                `${minutes}:${String(secs).padStart(2, "0")}`;
+        }
 
 
         if (
@@ -834,10 +1013,18 @@ function startCredentialTimer(
                 credentialTimer
             );
 
-            document.getElementById(
-                "credentialStatus"
-            ).textContent =
-                "EXPIRED";
+
+            const status =
+                document.getElementById(
+                    "credentialStatus"
+                );
+
+
+            if (status) {
+
+                status.textContent =
+                    "EXPIRED";
+            }
         }
     }
 
@@ -891,23 +1078,39 @@ async function loadBlastRadius() {
         }
 
 
-        document.querySelector(
-            ".total-resources"
-        ).textContent =
-            data.total_resources;
+        const totalResources =
+            document.querySelector(
+                ".total-resources"
+            );
 
 
-        document.querySelector(
-            ".critical-count"
-        ).textContent =
-            data.critical_count;
+        const criticalCount =
+            document.querySelector(
+                ".critical-count"
+            );
+
+
+        if (totalResources) {
+
+            totalResources.textContent =
+                data.total_resources ?? 0;
+        }
+
+
+        if (criticalCount) {
+
+            criticalCount.textContent =
+                data.critical_count ?? 0;
+        }
 
 
         renderBlastGraph(
             data
         );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         console.error(
             "Blast radius:",
@@ -916,9 +1119,11 @@ async function loadBlastRadius() {
 
 
         graph.innerHTML = `
+
             <div class="graph-error">
                 Blast radius service unavailable.
             </div>
+
         `;
     }
 }
@@ -932,6 +1137,9 @@ function renderBlastGraph(
         document.getElementById(
             "blastRadiusGraph"
         );
+
+
+    if (!graph) return;
 
 
     graph.innerHTML = "";
@@ -975,25 +1183,27 @@ function renderBlastGraph(
         "graph-resource-layer";
 
 
-    data.reachable_resources
-        .forEach(resource => {
+    (data.reachable_resources || [])
+        .forEach(
+            resource => {
 
-            const critical =
-                data.critical_resources?.includes(
-                    resource
+                const critical =
+                    data.critical_resources?.includes(
+                        resource
+                    );
+
+
+                layer.appendChild(
+                    createGraphNode(
+                        resource,
+                        critical
+                            ? "critical"
+                            : "resource",
+                        critical
+                    )
                 );
-
-
-            layer.appendChild(
-                createGraphNode(
-                    resource,
-                    critical
-                        ? "critical"
-                        : "resource",
-                    critical
-                )
-            );
-        });
+            }
+        );
 
 
     graph.appendChild(
@@ -1021,6 +1231,7 @@ function createGraphNode(
     node.innerHTML = `
 
         <div class="node-icon">
+
             ${
                 type === "identity"
                     ? "◉"
@@ -1028,10 +1239,13 @@ function createGraphNode(
                     ? "!"
                     : "◆"
             }
+
         </div>
 
         <div class="node-name">
+
             ${escapeHtml(name)}
+
         </div>
 
         ${
@@ -1076,27 +1290,29 @@ function renderIsolationPreview(
     container.innerHTML = "";
 
 
-    isolation.isolation_actions
-        .forEach(action => {
+    (isolation.isolation_actions || [])
+        .forEach(
+            action => {
 
-            const item =
-                document.createElement(
-                    "div"
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "isolation-action";
+
+
+                item.textContent =
+                    `✓ ${action}`;
+
+
+                container.appendChild(
+                    item
                 );
-
-
-            item.className =
-                "isolation-action";
-
-
-            item.textContent =
-                `✓ ${action}`;
-
-
-            container.appendChild(
-                item
-            );
-        });
+            }
+        );
 }
 
 
@@ -1137,13 +1353,15 @@ async function activateIsolation() {
             );
 
 
-        status.textContent =
-            "ISOLATION ACTIVE";
+        if (status) {
 
+            status.textContent =
+                "ISOLATION ACTIVE";
 
-        status.classList.add(
-            "active"
-        );
+            status.classList.add(
+                "active"
+            );
+        }
 
 
         const container =
@@ -1152,50 +1370,66 @@ async function activateIsolation() {
             );
 
 
-        container.innerHTML = "";
+        if (container) {
+
+            container.innerHTML = "";
 
 
-        data.isolation_actions
-            .forEach(action => {
+            (data.isolation_actions || [])
+                .forEach(
+                    action => {
 
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                item.className =
-                    "isolation-action";
+                        const item =
+                            document.createElement(
+                                "div"
+                            );
 
 
-                item.innerHTML = `
-                    <span>✓</span>
-                    ${escapeHtml(action)}
-                `;
+                        item.className =
+                            "isolation-action";
 
 
-                container.appendChild(
-                    item
+                        item.innerHTML = `
+                            <span>✓</span>
+                            ${escapeHtml(action)}
+                        `;
+
+
+                        container.appendChild(
+                            item
+                        );
+                    }
                 );
-            });
+        }
 
 
-        document.getElementById(
-            "sessionStatus"
-        ).textContent =
-            "ISOLATED";
+        const sessionStatus =
+            document.getElementById(
+                "sessionStatus"
+            );
 
 
-        document.getElementById(
-            "identityBadge"
-        ).textContent =
-            "ISOLATED";
+        if (sessionStatus) {
+
+            sessionStatus.textContent =
+                "ISOLATED";
+        }
 
 
-        document.getElementById(
-            "identityBadge"
-        ).className =
-            "badge revoked";
+        const identityBadge =
+            document.getElementById(
+                "identityBadge"
+            );
+
+
+        if (identityBadge) {
+
+            identityBadge.textContent =
+                "ISOLATED";
+
+            identityBadge.className =
+                "badge revoked";
+        }
 
 
         floatingAgent.classList.remove(
@@ -1217,7 +1451,9 @@ async function activateIsolation() {
             "Isolation activated. The compromised identity has been contained."
         );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         console.error(
             "Isolation:",
@@ -1226,7 +1462,9 @@ async function activateIsolation() {
 
 
         showBotMessage(
-            "Isolation failed. Check the backend."
+            `Isolation failed: ${escapeHtml(
+                error.message || "Backend error."
+            )}`
         );
     }
 }
@@ -1276,9 +1514,11 @@ async function loadAuditLogs() {
         if (!logs.length) {
 
             container.innerHTML = `
+
                 <div class="audit-empty">
                     No security events recorded yet.
                 </div>
+
             `;
 
             return;
@@ -1290,111 +1530,119 @@ async function loadAuditLogs() {
 
         [...logs]
             .reverse()
-            .forEach(log => {
+            .forEach(
+                log => {
 
-                const decision =
-                    String(
-                        log.decision ||
-                        log.event ||
-                        "EVENT"
-                    ).toUpperCase();
-
-
-                let severity =
-                    "normal";
+                    const decision =
+                        String(
+                            log.decision ||
+                            log.event ||
+                            "EVENT"
+                        ).toUpperCase();
 
 
-                if (
-                    decision.includes(
-                        "REVOKE"
-                    ) ||
-                    decision.includes(
-                        "ISOLATION"
-                    )
-                ) {
-
-                    severity =
-                        "danger";
-
-                }
-                else if (
-                    decision.includes(
-                        "RESTRICT"
-                    ) ||
-                    decision.includes(
-                        "REAUTH"
-                    )
-                ) {
-
-                    severity =
-                        "warning";
-
-                }
-                else if (
-                    decision.includes(
-                        "ALLOW"
-                    )
-                ) {
-
-                    severity =
-                        "success";
-                }
+                    let severity =
+                        "normal";
 
 
-                const row =
-                    document.createElement(
-                        "div"
+                    if (
+                        decision.includes(
+                            "REVOKE"
+                        ) ||
+                        decision.includes(
+                            "ISOLATION"
+                        )
+                    ) {
+
+                        severity =
+                            "danger";
+
+                    }
+
+                    else if (
+                        decision.includes(
+                            "RESTRICT"
+                        ) ||
+                        decision.includes(
+                            "REAUTH"
+                        )
+                    ) {
+
+                        severity =
+                            "warning";
+
+                    }
+
+                    else if (
+                        decision.includes(
+                            "ALLOW"
+                        )
+                    ) {
+
+                        severity =
+                            "success";
+                    }
+
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    row.className =
+                        `audit-row ${severity}`;
+
+
+                    row.innerHTML = `
+
+                        <div class="audit-indicator"></div>
+
+                        <div class="audit-time">
+                            ${formatAuditTime(
+                                log.timestamp
+                            )}
+                        </div>
+
+                        <div class="audit-event">
+
+                            <strong>
+                                ${escapeHtml(
+                                    decision
+                                )}
+                            </strong>
+
+                            <span>
+                                ${escapeHtml(
+                                    log.message ||
+                                    log.resource ||
+                                    "Security event"
+                                )}
+                            </span>
+
+                        </div>
+
+                        <div class="audit-identity">
+
+                            ${escapeHtml(
+                                log.identity ||
+                                "agent-001"
+                            )}
+
+                        </div>
+
+                    `;
+
+
+                    container.appendChild(
+                        row
                     );
+                }
+            );
 
+    }
 
-                row.className =
-                    `audit-row ${severity}`;
-
-
-                row.innerHTML = `
-
-                    <div class="audit-indicator"></div>
-
-                    <div class="audit-time">
-                        ${formatAuditTime(
-                            log.timestamp
-                        )}
-                    </div>
-
-                    <div class="audit-event">
-
-                        <strong>
-                            ${escapeHtml(
-                                decision
-                            )}
-                        </strong>
-
-                        <span>
-                            ${escapeHtml(
-                                log.message ||
-                                log.resource ||
-                                "Security event"
-                            )}
-                        </span>
-
-                    </div>
-
-                    <div class="audit-identity">
-                        ${escapeHtml(
-                            log.identity ||
-                            "agent-001"
-                        )}
-                    </div>
-
-                `;
-
-
-                container.appendChild(
-                    row
-                );
-            });
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Audit:",
@@ -1403,9 +1651,11 @@ async function loadAuditLogs() {
 
 
         container.innerHTML = `
+
             <div class="audit-empty">
                 Audit service unavailable.
             </div>
+
         `;
     }
 }
@@ -1428,9 +1678,12 @@ document
             document.getElementById(
                 "auditLogs"
             ).innerHTML = `
+
                 <div class="audit-empty">
-                    Display cleared. Backend audit history remains available.
+                    Display cleared.
+                    Backend audit history remains available.
                 </div>
+
             `;
         }
     );
@@ -1513,6 +1766,9 @@ function showUserMessage(
     message
 ) {
 
+    if (!chatMessages) return;
+
+
     const div =
         document.createElement(
             "div"
@@ -1550,11 +1806,15 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Risk Engine</b><br><br>
+
             AgentShield combines identity,
             device, behaviour, task,
             resource and network signals.
+
             The result is a score from 0 to 100.
+
         `;
     }
 
@@ -1564,11 +1824,15 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Blast Radius</b><br><br>
+
             It shows what resources the
             current identity can potentially
             reach if it is compromised.
+
             Red nodes represent critical resources.
+
         `;
     }
 
@@ -1578,11 +1842,14 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Isolation</b><br><br>
+
             Isolation revokes the identity's
             active credential and applies the
             containment strategy while preserving
             unaffected services.
+
         `;
     }
 
@@ -1592,10 +1859,15 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Ephemeral Credential</b><br><br>
+
             A temporary credential is issued
-            only after authorization. It expires
-            automatically after a short period.
+            only after authorization.
+
+            It expires automatically after
+            a short period.
+
         `;
     }
 
@@ -1606,12 +1878,17 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Authorization</b><br><br>
+
             ALLOW grants the requested permissions.
+
             RESTRICT reduces permissions.
-            REAUTHENTICATE requires additional
-            verification.
+
+            REAUTHENTICATE requires additional verification.
+
             REVOKE removes access.
+
         `;
     }
 
@@ -1621,10 +1898,15 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>Zero Trust</b><br><br>
+
             AgentShield does not permanently trust
-            an identity. Every resource request is
-            evaluated using its current context and risk.
+            an identity.
+
+            Every resource request is evaluated
+            using its current context and risk.
+
         `;
     }
 
@@ -1634,26 +1916,35 @@ function answerQuestion(
     ) {
 
         return `
+
             <b>URL Verification</b><br><br>
+
             The backend inspects the resource first.
+
             Only an ALLOW decision enables the
             Open Verified Resource button.
+
         `;
     }
 
 
     return `
+
         I can explain <b>risk</b>,
         <b>authorization</b>,
         <b>credentials</b>,
         <b>blast radius</b>,
         <b>isolation</b> or
         <b>Zero Trust</b>.
+
     `;
 }
 
 
 function sendChatMessage() {
+
+    if (!chatInput) return;
+
 
     const message =
         chatInput.value.trim();
@@ -1714,17 +2005,22 @@ DRAGGABLE CHATBOT
 let dragging =
     false;
 
+
 let moved =
     false;
+
 
 let startX =
     0;
 
+
 let startY =
     0;
 
+
 let startLeft =
     0;
+
 
 let startTop =
     0;
@@ -1734,14 +2030,20 @@ floatingAgentButton?.addEventListener(
     "pointerdown",
     event => {
 
+        event.preventDefault();
+
+
         dragging =
             true;
+
 
         moved =
             false;
 
+
         startX =
             event.clientX;
+
 
         startY =
             event.clientY;
@@ -1753,6 +2055,7 @@ floatingAgentButton?.addEventListener(
 
         startLeft =
             rect.left;
+
 
         startTop =
             rect.top;
@@ -1869,8 +2172,35 @@ floatingAgentButton?.addEventListener(
         }
 
 
-        floatingAgentButton.releasePointerCapture(
-            event.pointerId
+        try {
+
+            floatingAgentButton.releasePointerCapture(
+                event.pointerId
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Pointer capture release:",
+                error
+            );
+        }
+    }
+);
+
+
+floatingAgentButton?.addEventListener(
+    "pointercancel",
+    () => {
+
+        dragging =
+            false;
+
+
+        floatingAgent.classList.remove(
+            "dragging"
         );
     }
 );
@@ -1930,6 +2260,16 @@ INITIALIZE
 */
 
 async function initialize() {
+
+    console.log(
+        "AgentShield frontend started."
+    );
+
+    console.log(
+        "Backend:",
+        API_BASE
+    );
+
 
     await loadSession();
 
