@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AgentShield | Zero-Trust Agent Security
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ◈
+            </div>
+
+            <div>
+                <strong>
+                    AgentShield
+                </strong>
+
+                <span>
+                    ZERO-TRUST FABRIC
+                </span>
+            </div>
+
+        </div>
+
+
+        <nav>
+
+            <a
+                href="#overview"
+                class="active"
+            >
+                <span>◉</span>
+                Overview
+            </a>
+
+            <a href="#resource">
+                <span>◇</span>
+                Resource Verification
+            </a>
+
+            <a href="#credentials">
+                <span>◆</span>
+                Credentials
+            </a>
+
+            <a href="#blast">
+                <span>◎</span>
+                Blast Radius
+            </a>
+
+            <a href="#isolation">
+                <span>⊘</span>
+                Isolation
+            </a>
+
+            <a href="#audit">
+                <span>≡</span>
+                Audit Logs
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-status">
+
+            <span class="online-dot"></span>
+
+            SECURITY ENGINE ONLINE
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+
+                <span class="eyebrow">
+                    SECURITY CONTROL CENTER
+                </span>
+
+                <h1>
+                    Agent Authorization Fabric
+                </h1>
+
+            </div>
+
+
+            <div class="engine-status">
+
+                <span class="online-dot"></span>
+
+                ENGINE ONLINE
+
+            </div>
+
+        </header>
+
+
+        <!-- OVERVIEW -->
+
+        <section
+            id="overview"
+            class="section"
+        >
+
+            <div class="section-title">
+
+                <div>
+
+                    <span class="eyebrow">
+                        LIVE SESSION
+                    </span>
+
+                    <h2>
+                        Identity Context
+                    </h2>
+
+                </div>
+
+                <div
+                    id="identityBadge"
+                    class="badge"
+                >
+                    ACTIVE
+                </div>
+
+            </div>
+
+
+            <div class="grid four">
+
+                <div class="card">
+
+                    <span class="label">
+                        AGENT IDENTITY
+                    </span>
+
+                    <strong id="identity">
+                        agent-001
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span class="label">
+                        DEVICE
+                    </span>
+
+                    <strong id="device">
+                        robot-17
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span class="label">
+                        TASK
+                    </span>
+
+                    <strong id="task">
+                        read_logs
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span class="label">
+                        SESSION
+                    </span>
+
+                    <strong id="sessionStatus">
+                        ACTIVE
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RISK -->
+
+        <section class="section">
+
+            <div class="grid two">
+
+                <div class="panel risk-panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+
+                            <span class="eyebrow">
+                                BEHAVIOURAL ANALYSIS
+                            </span>
+
+                            <h2>
+                                Risk Engine
+                            </h2>
+
+                        </div>
+
+                        <div
+                            id="riskLevel"
+                            class="risk-level"
+                        >
+                            LOW
+                        </div>
+
+                    </div>
+
+
+                    <div class="risk-score">
+
+                        <span
+                            id="riskNumber"
+                        >
+                            0
+                        </span>
+
+                        <small>
+                            / 100
+                        </small>
+
+                    </div>
+
+
+                    <div class="risk-track">
+
+                        <div
+                            id="riskProgress"
+                            class="risk-progress"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="signals">
+
+                        <div>
+                            <span>
+                                Identity
+                            </span>
+
+                            <strong
+                                id="identityRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Device
+                            </span>
+
+                            <strong
+                                id="deviceRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Behaviour
+                            </span>
+
+                            <strong
+                                id="behaviourRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Task
+                            </span>
+
+                            <strong
+                                id="taskRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Resource
+                            </span>
+
+                            <strong
+                                id="resourceRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Network
+                            </span>
+
+                            <strong
+                                id="networkRisk"
+                            >
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- AUTHORIZATION -->
+
+                <div class="panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+
+                            <span class="eyebrow">
+                                POLICY DECISION
+                            </span>
+
+                            <h2>
+                                Authorization
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="authorizationDecision"
+                        class="authorization-decision"
+                    >
+                        WAITING
+                    </div>
+
+
+                    <p
+                        id="authorizationMessage"
+                        class="authorization-message"
+                    >
+                        Waiting for a resource request.
+                    </p>
+
+
+                    <div
+                        id="permissions"
+                        class="permissions"
+                    >
+
+                        <span>
+                            No permissions issued
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RESOURCE -->
+
+        <section
+            id="resource"
+            class="section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            RESOURCE ACCESS
+                        </span>
+
+                        <h2>
+                            Zero-Trust URL Verification
+                        </h2>
+
+                        <p>
+                            The security engine evaluates the
+                            resource before allowing access.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="url-form">
+
+                    <input
+                        id="resourceUrl"
+                        type="url"
+                        placeholder="https://example.com"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="verifyButton"
+                        class="primary-button"
+                        type="button"
+                    >
+                        VERIFY RESOURCE
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="resourceResult"
+                    class="resource-result"
+                >
+
+                    <div class="waiting-box">
+                        Enter a URL to begin verification.
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="openResourceButton"
+                    class="open-button"
+                    type="button"
+                    disabled
+                >
+                    OPEN VERIFIED RESOURCE
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- CREDENTIAL -->
+
+        <section
+            id="credentials"
+            class="section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            EPHEMERAL ACCESS
+                        </span>
+
+                        <h2>
+                            Short-Lived Credential
+                        </h2>
+
+                    </div>
+
+                    <div
+                        id="credentialStatus"
+                        class="badge"
+                    >
+                        NOT ISSUED
+                    </div>
+
+                </div>
+
+
+                <div class="credential-grid">
+
+                    <div>
+
+                        <span class="label">
+                            CREDENTIAL ID
+                        </span>
+
+                        <strong
+                            id="credentialId"
+                            class="mono"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="label">
+                            EXPIRATION
+                        </span>
+
+                        <strong
+                            id="credentialTimer"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- BLAST RADIUS -->
+
+        <section
+            id="blast"
+            class="section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            COMPROMISE ANALYSIS
+                        </span>
+
+                        <h2>
+                            Blast Radius
+                        </h2>
+
+                        <p>
+                            Resources reachable from the current identity.
+                        </p>
+
+                    </div>
+
+
+                    <div class="blast-summary">
+
+                        <div>
+
+                            <span>
+                                TOTAL
+                            </span>
+
+                            <strong
+                                class="total-resources"
+                            >
+                                —
+                            </strong>
+
+                        </div>
+
+
+                        <div class="critical">
+
+                            <span>
+                                CRITICAL
+                            </span>
+
+                            <strong
+                                class="critical-count"
+                            >
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="blastRadiusGraph"
+                    class="blast-radius-graph"
+                >
+
+                    <div class="graph-loading">
+                        Loading privilege graph...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ISOLATION -->
+
+        <section
+            id="isolation"
+            class="section"
+        >
+
+            <div class="panel isolation-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            COMPROMISE CONTAINMENT
+                        </span>
+
+                        <h2>
+                            Isolation Strategy
+                        </h2>
+
+                    </div>
+
+
+                    <div
+                        class="isolation-status"
+                    >
+                        READY
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="isolation-actions"
+                >
+
+                    <div>
+                        Isolation has not been activated.
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="isolateButton"
+                    class="danger-button"
+                    type="button"
+                >
+                    ACTIVATE ISOLATION
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- AUDIT LOGS AT BOTTOM -->
+
+        <section
+            id="audit"
+            class="section audit-section"
+        >
+
+            <div class="panel">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            SECURITY TELEMETRY
+                        </span>
+
+                        <h2>
+                            Audit Logs
+                        </h2>
+
+                        <p>
+                            Every security decision is recorded here.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="clearLogsButton"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        CLEAR DISPLAY
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="auditLogs"
+                    class="audit-log-container"
+                >
+
+                    <div class="audit-empty">
+                        Waiting for security events...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+
+            AgentShield · Zero-Trust Agent Identity
+            & Privilege Fabric
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- DRAGGABLE AI INSTRUCTOR -->
+
+<div id="floatingAgent">
+
+    <button
+        id="floatingAgentButton"
+        type="button"
+    >
+
+        <span class="bot-icon">
+            ◈
+        </span>
+
+        <span class="bot-status"></span>
+
+    </button>
+
+
+    <div id="agentChat">
+
+        <div class="chat-header">
+
+            <div>
+
+                <strong>
+                    AgentShield AI
+                </strong>
+
+                <small>
+                    SECURITY INSTRUCTOR
+                </small>
+
+            </div>
+
+
+            <button
+                id="closeAgentChat"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            id="chatMessages"
+            class="chat-messages"
+        >
+
+            <div class="bot-message">
+
+                Hello. I am your AgentShield
+                security instructor.
+
+                <br><br>
+
+                Ask me about:
+
+                <br>
+                • Risk Engine
+                <br>
+                • Authorization
+                <br>
+                • Credentials
+                <br>
+                • Blast Radius
+                <br>
+                • Isolation
+                <br>
+                • Zero Trust
+
+            </div>
+
+        </div>
+
+
+        <div class="chat-input-area">
+
+            <input
+                id="chatInput"
+                type="text"
+                placeholder="Ask about security..."
+            >
+
+            <button
+                id="sendChat"
+                type="button"
+            >
+                →
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
