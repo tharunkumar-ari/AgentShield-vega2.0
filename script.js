@@ -17,7 +17,7 @@ DEPLOYED:
 Replace with your deployed Flask backend URL.
 */
 
-const API_BASE = "https://YOUR-RENDER-URL.onrender.com";
+const API_BASE = "https://agent-shield-backend.onrender.com/";
 
 let verifiedResource = null;
 
